@@ -1,0 +1,121 @@
+name: "Leed — schedule a content release"
+description: >-
+  Schedule every Leed page tagged with a commit from this release to publish at one time,
+  authenticating with a GitHub OIDC token. No long-lived Leed credential is stored in CI.
+author: "Leed AI"
+
+branding:
+  # GitHub restricts branding.color to a fixed palette — white, black, yellow, blue, green,
+  # orange, red, purple, gray-dark — and there is no pink. Leed's brand colour is Tailwind
+  # pink-700 (#be185d, hue ~335°), so `red` is the nearest available; purple sits ~65° away.
+  # Change this only if the brand palette changes, not on taste.
+  icon: calendar
+  color: red
+
+inputs:
+  audience:
+    description: >-
+      The audience Leed generated for your CI trust, copied from Settings → CI trust.
+      Looks like `leed-cms:3f2a9c14-8b7e-4d61-9a03-1c5e77b2d840`. Matched byte-for-byte.
+      Not a secret — it identifies the trust, it does not authenticate anything.
+    required: true
+  publish-at:
+    description: "When the matched pages should publish, ISO 8601. Must be in the future."
+    required: true
+  since:
+    description: >-
+      The commit or ref the release starts AFTER. **Usually leave this unset** — on a tag build
+      the action uses the previous matching tag, and on a branch push it uses the ref's previous
+      value. Set it only to override that.
+    required: false
+    default: ""
+  merge-commit:
+    description: >-
+      A merge commit whose second parent's history is the release — for the workflow where
+      merging to `main` IS the release. The range becomes `<sha>^1..<sha>^2`, the commits that
+      merge brought in, excluding the merge commit itself. Usually unnecessary: on a push the
+      action already uses the ref's previous value, and falls back to the merge at `HEAD` when
+      there isn't one. Set it to re-run a past release or to schedule from a manual dispatch.
+    required: false
+    default: ""
+  tag-pattern:
+    description: >-
+      Which tags count as releases when finding the previous one, e.g. `v*` so a `nightly-…` or
+      `build-123` tag sitting between two releases is skipped. Only used on a tag build.
+    required: false
+    default: "*"
+  source-ids:
+    description: >-
+      An explicit list of source ids, INSTEAD of deriving them from a commit range. Separate with
+      newlines, commas, or both — a `git log` capture, a file, or a release tool's comma list all
+      work as-is. Blank entries and duplicates are dropped and surrounding whitespace trimmed.
+      A source id is an arbitrary string in Leed, usually a commit SHA but not required to be one,
+      so nothing here validates its shape. Takes precedence over `since`/`until`.
+    required: false
+    default: ""
+  until:
+    description: "The commit or ref the release ends at."
+    required: false
+    default: "HEAD"
+  minimum-status:
+    description: >-
+      Editorial floor: `draft`, `in_revision` or `approved`. Optional — omitted, the trust's
+      own ceiling applies, which is the normal case. Supplying a stricter value narrows it;
+      a looser one is refused by Leed.
+    required: false
+    default: ""
+  dry-run:
+    description: >-
+      `true` (default) validates and reports what would be scheduled without changing anything.
+      Set `false` to actually schedule. The action ALWAYS performs a dry run first either way.
+    required: false
+    default: "true"
+  leed-url:
+    description: "Base URL of your Leed instance."
+    required: false
+    default: "https://app.leed.ai"
+  fail-on-unmatched:
+    description: >-
+      Fail the job if any commit in the range matched no page. Off by default: most commits in a
+      release touch code rather than content, so unmatched ids are normal.
+    required: false
+    default: "false"
+
+outputs:
+  scheduled:
+    description: "How many pages were scheduled (0 on a dry run)."
+    value: ${{ steps.schedule.outputs.scheduled }}
+  would-schedule:
+    description: "How many pages the dry run said would be scheduled."
+    value: ${{ steps.schedule.outputs.would-schedule }}
+  matched:
+    description: "How many pages matched the commit range."
+    value: ${{ steps.schedule.outputs.matched }}
+  unmatched-source-ids:
+    description: "JSON array of commit ids in the range that matched no page."
+    value: ${{ steps.schedule.outputs.unmatched-source-ids }}
+
+runs:
+  using: composite
+  steps:
+    - id: schedule
+      shell: bash
+      # Inputs are passed through `env` rather than interpolated into the script with `${{ }}`.
+      # Direct interpolation splices caller-controlled text into the shell before bash parses it,
+      # which is a script-injection hole in any action that takes free-text input.
+      env:
+        LEED_AUDIENCE: ${{ inputs.audience }}
+        LEED_PUBLISH_AT: ${{ inputs.publish-at }}
+        LEED_SINCE: ${{ inputs.since }}
+        LEED_SOURCE_IDS: ${{ inputs.source-ids }}
+        LEED_TAG_PATTERN: ${{ inputs.tag-pattern }}
+        LEED_MERGE_COMMIT: ${{ inputs.merge-commit }}
+        # `github.event.before` is a context, not a runner variable, so it has to be passed in.
+        # GITHUB_REF_TYPE and GITHUB_REF_NAME are already in the environment.
+        LEED_EVENT_BEFORE: ${{ github.event.before }}
+        LEED_UNTIL: ${{ inputs.until }}
+        LEED_MINIMUM_STATUS: ${{ inputs.minimum-status }}
+        LEED_DRY_RUN: ${{ inputs.dry-run }}
+        LEED_BASE_URL: ${{ inputs.leed-url }}
+        LEED_FAIL_ON_UNMATCHED: ${{ inputs.fail-on-unmatched }}
+      run: ${{ github.action_path }}/schedule.sh

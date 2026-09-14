@@ -1,0 +1,30 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# This repository's own token never needs to write anything.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS is here deliberately: its /bin/bash is 3.2, and customers run this action on
+        # macOS runners. The script avoids bash-4-only constructs; this proves it stays that way.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Pinned to a full commit SHA (v7.0.1) rather than a moving tag.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Shellcheck
+        if: runner.os == 'Linux'
+        run: shellcheck schedule.sh test/run.sh
+
+      - name: Behavioural tests
+        run: bash test/run.sh

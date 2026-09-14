@@ -1,0 +1,3 @@
+# Every change needs a maintainer's review. This action runs with `id-token: write` in customers'
+# pipelines, so the script and its metadata are security-sensitive, not just the obvious files.
+* @kingmesal
