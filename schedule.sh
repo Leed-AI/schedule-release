@@ -61,7 +61,7 @@ read_lines_into_shas() {
 
 die() { echo "${ERR}$*" >&2; exit 1; }
 note() { echo "$*"; }
-mask() { [ "${GITHUB_ACTIONS:-}" = "true" ] && echo "::add-mask::$1" || true; }
+mask() { if [ "${GITHUB_ACTIONS:-}" = "true" ]; then echo "::add-mask::$1"; fi; }
 
 # ---------------------------------------------------------------------------
 # Preconditions, checked in the order that produces the most useful message.
@@ -226,7 +226,7 @@ else
     -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
     "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${LEED_AUDIENCE}" | jq -r '.value')"
 fi
-[ -n "$TOKEN" ] && [ "$TOKEN" != "null" ] || die "Failed to mint an OIDC token."
+if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then die "Failed to mint an OIDC token."; fi
 mask "${TOKEN}"
 
 # ---------------------------------------------------------------------------
