@@ -210,6 +210,31 @@ action has no build step and nothing to age out. The one footgun `getIDToken` wo
 - Per-page failures are printed with their reasons and **fail the job** — a partial release is
   not a success.
 
+## Releasing a new version (maintainers)
+
+Every release takes four steps. Steps 3 and 4 are the ones that get forgotten.
+
+1. **Merge through a pull request.** `main` rejects direct pushes and requires both test jobs
+   (Ubuntu and macOS) to pass.
+2. **Tag the merge commit with the full version**, e.g. `v1.0.3`. The "Protect release tags"
+   ruleset restricts tag creation, so only an account with bypass can push it.
+3. **Move the major tag to the same commit**, so everyone pinned to `@v1` gets the update:
+   ```sh
+   git tag -f v1 && git push -f origin v1
+   ```
+   Moving a tag is an update under the same ruleset, so it also needs an account with bypass.
+4. **Create the GitHub release and tick "Publish this Action to the GitHub Marketplace".**
+   Publishing is per release: a release without the box ticked does not update the Marketplace
+   listing, which keeps showing the last release that had it. The categories carry over.
+
+Keep in mind:
+
+- The `description` in `action.yml` must be **under 125 characters**, or the Marketplace refuses
+  the release.
+- A **breaking change** (a removed or renamed input, a changed default) gets `v2.0.0` and a new
+  `v2` tag. Leave `v1` where it is so workflows pinned to `@v1` keep working.
+- Add an entry to [`CHANGELOG.md`](CHANGELOG.md) for each version and use it as the release notes.
+
 ## License
 
 [MIT](LICENSE) © Leed, Inc. Using this does not require a Leed license; scheduling content requires a Leed account on a plan that includes it.
