@@ -1,7 +1,8 @@
 # `leed-ai/schedule-release`
 
-Schedule a Leed content release from the commits in a range, authenticating with a GitHub OIDC
-token. **Nothing long-lived is stored in your repository.**
+Continuous documentation for Leed: schedule the documentation and content pages tagged with the
+commits in a release to publish at one time, so your docs ship with your code. Authenticates with a
+GitHub OIDC token. **Nothing long-lived is stored in your repository.**
 
 ```yaml
 name: Schedule Leed content release

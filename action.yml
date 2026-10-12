@@ -1,7 +1,8 @@
 name: "Leed — schedule a content release"
 description: >-
-  Schedule every Leed page tagged with a commit from this release to publish at one time,
-  authenticating with a GitHub OIDC token. No long-lived Leed credential is stored in CI.
+  Continuous documentation for Leed: schedule every documentation page tagged with a commit from
+  this release to publish at one time, so your docs ship with your code. Authenticates with a
+  GitHub OIDC token; no long-lived Leed credential is stored in CI.
 author: "Leed AI"
 
 branding:
