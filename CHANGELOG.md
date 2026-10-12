@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.2
+
+- Shortened the action's description to fit GitHub Marketplace's 125-character limit. No change in behaviour.
+
 ## v1.0.1
 
 - Renamed the action to "Leed - Continuous Documentation Release" and described it as continuous documentation for Leed, so it can be found by those terms in GitHub Marketplace. No change in behaviour.

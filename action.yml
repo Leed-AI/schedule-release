@@ -1,8 +1,5 @@
 name: "Leed - Continuous Documentation Release"
-description: >-
-  Continuous documentation for Leed: schedule every documentation page tagged with a commit from
-  this release to publish at one time, so your docs ship with your code. Authenticates with a
-  GitHub OIDC token; no long-lived Leed credential is stored in CI.
+description: "Continuous documentation for Leed: schedule docs tagged with your release's commits to publish together. OIDC, no secrets."
 author: "Leed AI"
 
 branding:
