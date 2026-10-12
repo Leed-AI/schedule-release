@@ -1,4 +1,4 @@
-name: "Leed — schedule a content release"
+name: "Leed - Continuous Documentation Release"
 description: >-
   Continuous documentation for Leed: schedule every documentation page tagged with a commit from
   this release to publish at one time, so your docs ship with your code. Authenticates with a
